@@ -1,0 +1,6 @@
+{
+  "name": "Student Internship & Placement Management Portal (SIPMP)",
+  "description": "Enterprise Placement & Internship Portal with 3-role login, multi-tier Staff authorization, eligibility engine, and 16-table MySQL architecture.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

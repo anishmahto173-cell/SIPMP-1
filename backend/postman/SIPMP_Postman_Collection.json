@@ -1,0 +1,116 @@
+{
+  "info": {
+    "name": "SIPMP — Student Internship & Placement Management Portal API",
+    "_postman_id": "sipmp-industrial-assignment-collection-v1",
+    "description": "Comprehensive Postman test collection for the SIPMP Spring Boot 3.5.7 backend covering all 28 tasks and 12 business rules.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication (T01, T02)",
+      "item": [
+        {
+          "name": "POST Student Login (S01)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleOption\": \"STUDENT\",\n  \"identifier\": \"priya.shah@college.edu\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {"raw": "http://localhost:8080/api/auth/login", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "auth", "login"]}
+          }
+        },
+        {
+          "name": "POST Recruiter Login (S01)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleOption\": \"RECRUITER\",\n  \"identifier\": \"karan.joshi@technova.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {"raw": "http://localhost:8080/api/auth/login", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "auth", "login"]}
+          }
+        },
+        {
+          "name": "POST Staff Login (Placement Officer)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleOption\": \"STAFF\",\n  \"identifier\": \"neha.patel@college.edu\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {"raw": "http://localhost:8080/api/auth/login", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "auth", "login"]}
+          }
+        },
+        {
+          "name": "POST Register New Student (T01)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Sneha Patil\",\n  \"email\": \"sneha.patil@college.edu\",\n  \"phone\": \"9876543299\",\n  \"password\": \"Password@123\",\n  \"role\": \"STUDENT\",\n  \"enrollmentNo\": \"DCSE-2023-099\",\n  \"branch\": \"CSE\",\n  \"semester\": 5,\n  \"address\": \"Campus Hostel B\"\n}"
+            },
+            "url": {"raw": "http://localhost:8080/api/auth/register", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "auth", "register"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Opportunities & Drives (T10, T11)",
+      "item": [
+        {
+          "name": "GET All Open Opportunities (S05)",
+          "request": {
+            "method": "GET",
+            "url": {"raw": "http://localhost:8080/api/opportunities", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "opportunities"]}
+          }
+        },
+        {
+          "name": "POST Create New Drive (T10, S10)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"companyId\": 1,\n  \"title\": \"Cloud Support Engineer\",\n  \"jobType\": \"Full-time\",\n  \"description\": \"Linux administration, cloud deployments, and incident triage.\",\n  \"skillsRequired\": \"Linux, Networking, AWS, Shell Scripting\",\n  \"packageCtc\": 6.2,\n  \"location\": \"Pune\",\n  \"deadline\": \"2025-06-30\",\n  \"minCgpa\": 7.0,\n  \"eligibleBranches\": \"CSE,IT,ECE\",\n  \"eligibleSemesters\": \"5,6\",\n  \"maxBacklogs\": 0,\n  \"openingsCount\": 5\n}"
+            },
+            "url": {"raw": "http://localhost:8080/api/opportunities/create", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "opportunities", "create"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Applications & Offers (T13, T14, T16, T17)",
+      "item": [
+        {
+          "name": "POST Submit Application (T13, BR-04)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"studentId\": 1,\n  \"opportunityId\": 2\n}"
+            },
+            "url": {"raw": "http://localhost:8080/api/applications/apply", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "applications", "apply"]}
+          }
+        },
+        {
+          "name": "POST Accept Placement Offer (T17, BR-09)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Accepted\"\n}"
+            },
+            "url": {"raw": "http://localhost:8080/api/offers/respond/1", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "offers", "respond", "1"]}
+          }
+        }
+      ]
+    }
+  ]
+}
