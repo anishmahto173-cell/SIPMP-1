@@ -59,7 +59,7 @@ public class OfferController {
      * Responding to an offer: Accepted or Rejected (Enforcing BR-09 Single Offer Policy)
      */
     @PostMapping("/respond/{offerId}")
-    public ResponseEntity<?> respondToOffer(@PathVariable Long offerId, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> respondToOffer(@PathVariable Integer offerId, @RequestBody Map<String, String> body) {
         Optional<Offer> offerOpt = offerRepository.findById(offerId);
         if (offerOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -76,7 +76,7 @@ public class OfferController {
             // BR-09: Single Offer Policy - Find target student and withdraw all other active applications
             Optional<Application> currentApp = applicationRepository.findById(offer.getApplicationId());
             if (currentApp.isPresent()) {
-                Long studentId = currentApp.get().getStudentId();
+                Integer studentId = currentApp.get().getStudentId();
                 List<Application> otherApps = applicationRepository.findByStudentId(studentId);
 
                 for (Application app : otherApps) {

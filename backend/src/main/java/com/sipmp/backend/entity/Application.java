@@ -20,13 +20,13 @@ public class Application {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "application_id")
-    private Long applicationId;
+    private Integer applicationId;
 
     @Column(name = "student_id", nullable = false)
-    private Long studentId;
+    private Integer studentId;
 
     @Column(name = "opportunity_id", nullable = false)
-    private Long opportunityId;
+    private Integer opportunityId;
 
     @Column(name = "status", nullable = false, length = 30)
     private String status = "Applied"; // Applied, Shortlisted, Interview Scheduled, Selected, Rejected, Withdrawn

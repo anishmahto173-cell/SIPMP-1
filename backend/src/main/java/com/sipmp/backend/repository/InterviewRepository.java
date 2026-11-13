@@ -6,7 +6,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface InterviewRepository extends JpaRepository<Interview, Long> {
-    List<Interview> findByApplicationId(Long applicationId);
+public interface InterviewRepository extends JpaRepository<Interview, Integer> {
+    List<Interview> findByApplicationId(Integer applicationId);
     List<Interview> findByStatus(String status);
 }

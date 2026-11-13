@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface OfferRepository extends JpaRepository<Offer, Long> {
-    List<Offer> findByApplicationId(Long applicationId);
+public interface OfferRepository extends JpaRepository<Offer, Integer> {
+    List<Offer> findByApplicationId(Integer applicationId);
     List<Offer> findByStatus(String status);
 }

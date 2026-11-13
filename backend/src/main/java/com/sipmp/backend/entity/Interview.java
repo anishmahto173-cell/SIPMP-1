@@ -18,10 +18,10 @@ public class Interview {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "interview_id")
-    private Long interviewId;
+    private Integer interviewId;
 
     @Column(name = "application_id", nullable = false)
-    private Long applicationId;
+    private Integer applicationId;
 
     @Column(name = "round_name", nullable = false, length = 100)
     private String roundName;

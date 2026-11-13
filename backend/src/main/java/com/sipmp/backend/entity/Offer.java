@@ -19,10 +19,10 @@ public class Offer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "offer_id")
-    private Long offerId;
+    private Integer offerId;
 
     @Column(name = "application_id", nullable = false)
-    private Long applicationId;
+    private Integer applicationId;
 
     @Column(name = "ctc_lpa", nullable = false)
     private Double ctcLpa;

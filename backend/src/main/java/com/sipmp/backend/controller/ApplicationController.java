@@ -24,19 +24,19 @@ public class ApplicationController {
     private OfferRepository offerRepository;
 
     @GetMapping("/student/{studentId}")
-    public ResponseEntity<List<Application>> getByStudent(@PathVariable Long studentId) {
+    public ResponseEntity<List<Application>> getByStudent(@PathVariable Integer studentId) {
         return ResponseEntity.ok(applicationRepository.findByStudentId(studentId));
     }
 
     @GetMapping("/opportunity/{opportunityId}")
-    public ResponseEntity<List<Application>> getByOpportunity(@PathVariable Long opportunityId) {
+    public ResponseEntity<List<Application>> getByOpportunity(@PathVariable Integer opportunityId) {
         return ResponseEntity.ok(applicationRepository.findByOpportunityId(opportunityId));
     }
 
     @PostMapping("/apply")
-    public ResponseEntity<?> apply(@RequestBody Map<String, Long> payload) {
-        Long studentId = payload.get("studentId");
-        Long opportunityId = payload.get("opportunityId");
+    public ResponseEntity<?> apply(@RequestBody Map<String, Integer> payload) {
+        Integer studentId = payload.get("studentId");
+        Integer opportunityId = payload.get("opportunityId");
 
         // BR-04: Prevent duplicate applications
         if (applicationRepository.existsByStudentIdAndOpportunityId(studentId, opportunityId)) {
@@ -63,7 +63,7 @@ public class ApplicationController {
     }
 
     @PostMapping("/withdraw/{applicationId}")
-    public ResponseEntity<?> withdraw(@PathVariable Long applicationId, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> withdraw(@PathVariable Integer applicationId, @RequestBody Map<String, String> body) {
         Optional<Application> appOpt = applicationRepository.findById(applicationId);
         if (appOpt.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -89,7 +89,7 @@ public class ApplicationController {
     }
 
     @PostMapping("/status/{applicationId}")
-    public ResponseEntity<?> updateStatus(@PathVariable Long applicationId, @RequestBody Map<String, String> body) {
+    public ResponseEntity<?> updateStatus(@PathVariable Integer applicationId, @RequestBody Map<String, String> body) {
         Optional<Application> appOpt = applicationRepository.findById(applicationId);
         if (appOpt.isEmpty()) {
             return ResponseEntity.notFound().build();

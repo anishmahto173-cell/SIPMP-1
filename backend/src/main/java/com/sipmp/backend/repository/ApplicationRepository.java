@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ApplicationRepository extends JpaRepository<Application, Long> {
-    List<Application> findByStudentId(Long studentId);
-    List<Application> findByOpportunityId(Long opportunityId);
+public interface ApplicationRepository extends JpaRepository<Application, Integer> {
+    List<Application> findByStudentId(Integer studentId);
+    List<Application> findByOpportunityId(Integer opportunityId);
     List<Application> findByStatus(String status);
-    Optional<Application> findByStudentIdAndOpportunityId(Long studentId, Long opportunityId);
-    boolean existsByStudentIdAndOpportunityId(Long studentId, Long opportunityId);
+    Optional<Application> findByStudentIdAndOpportunityId(Integer studentId, Integer opportunityId);
+    boolean existsByStudentIdAndOpportunityId(Integer studentId, Integer opportunityId);
 }
