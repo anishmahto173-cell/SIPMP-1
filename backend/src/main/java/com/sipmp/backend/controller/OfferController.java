@@ -1,14 +1,17 @@
 package com.sipmp.backend.controller;
 
-import com.sipmp.backend.entity.Offer;
 import com.sipmp.backend.entity.Application;
-import com.sipmp.backend.repository.OfferRepository;
+import com.sipmp.backend.entity.Offer;
+import com.sipmp.backend.entity.User;
 import com.sipmp.backend.repository.ApplicationRepository;
+import com.sipmp.backend.repository.OfferRepository;
+import com.sipmp.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -24,15 +27,23 @@ public class OfferController {
     @Autowired
     private ApplicationRepository applicationRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @GetMapping
     public ResponseEntity<List<Offer>> getAllOffers() {
         return ResponseEntity.ok(offerRepository.findAll());
     }
 
     @PostMapping("/issue")
-    public ResponseEntity<?> issueOffer(@RequestBody Offer offer) {
-        if (offer.getCtcLpa() == null || offer.getCtcLpa() <= 0) {
+    public ResponseEntity<?> issueOffer(@RequestBody Offer offer, Authentication authentication) {
+        if (offer.getPackageAmount() == null || offer.getPackageAmount().compareTo(BigDecimal.ZERO) <= 0) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", "Offered Package must be greater than 0 (BR-06)."));
+        }
+        if (offer.getReleasedBy() == null && authentication != null) {
+            userRepository.findByEmailIgnoreCase(authentication.getName())
+                    .map(User::getUserId)
+                    .ifPresent(offer::setReleasedBy);
         }
 
         offer.setStatus("Pending");
@@ -70,6 +81,7 @@ public class OfferController {
 
         if ("Accepted".equalsIgnoreCase(responseStatus)) {
             offer.setStatus("Accepted");
+            offer.setRespondedAt(LocalDateTime.now());
             offer.setUpdatedAt(LocalDateTime.now());
             offerRepository.save(offer);
 
@@ -96,6 +108,7 @@ public class OfferController {
             ));
         } else {
             offer.setStatus("Rejected");
+            offer.setRespondedAt(LocalDateTime.now());
             offer.setUpdatedAt(LocalDateTime.now());
             offerRepository.save(offer);
 

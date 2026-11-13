@@ -59,7 +59,7 @@ public class RecruiterApprovalController {
     @PostMapping("/{userId}/approve")
     @Transactional
     public ResponseEntity<?> approveRecruiter(
-            @PathVariable Long userId,
+            @PathVariable Integer userId,
             @RequestBody(required = false) Map<String, String> body,
             Authentication authentication
     ) {
@@ -126,7 +126,7 @@ public class RecruiterApprovalController {
     @PostMapping("/{userId}/reject")
     @Transactional
     public ResponseEntity<?> rejectRecruiter(
-            @PathVariable Long userId,
+            @PathVariable Integer userId,
             @RequestBody(required = false) Map<String, String> body,
             Authentication authentication
     ) {

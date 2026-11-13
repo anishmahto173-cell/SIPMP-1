@@ -2,6 +2,7 @@ package com.sipmp.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -19,10 +20,10 @@ public class StudentProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "student_id")
-    private Long studentId;
+    private Integer studentId;
 
     @Column(name = "user_id", nullable = false, unique = true)
-    private Long userId;
+    private Integer userId;
 
     @Column(name = "enrollment_no", nullable = false, unique = true, length = 30)
     private String enrollmentNo;
@@ -33,29 +34,65 @@ public class StudentProfile {
     @Column(name = "semester", nullable = false)
     private Integer semester;
 
-    @Column(name = "cgpa", nullable = false)
-    private Double cgpa;
+    @Column(name = "cgpa", nullable = false, precision = 4, scale = 2)
+    private BigDecimal cgpa;
 
-    @Column(name = "backlogs", nullable = false)
+    @Column(name = "backlogs")
+    @Builder.Default
     private Integer backlogs = 0;
 
-    @Column(name = "skills", columnDefinition = "TEXT")
+    @Column(name = "skills", length = 255)
     private String skills;
 
-    @Column(name = "address", columnDefinition = "TEXT")
+    @Column(name = "address", length = 255)
     private String address;
 
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
-    @Column(name = "verification_status", nullable = false, length = 20)
-    private String verificationStatus = "Pending"; // Pending, Verified, Rejected
+    @Column(name = "linkedin_url", length = 150)
+    private String linkedinUrl;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "github_url", length = 150)
+    private String githubUrl;
+
+    @Column(name = "verification_status", length = 30)
+    @Builder.Default
+    private String verificationStatus = "Pending"; // Pending, Verified, Correction Requested
+
+    @Column(name = "verification_remarks", length = 255)
+    private String verificationRemarks;
+
+    @Column(name = "verified_by")
+    private Integer verifiedBy;
+
+    @Column(name = "verified_at")
+    private LocalDateTime verifiedAt;
+
+    @Column(name = "created_at", updatable = false)
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.backlogs == null) {
+            this.backlogs = 0;
+        }
+        if (this.verificationStatus == null) {
+            this.verificationStatus = "Pending";
+        }
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        if (this.updatedAt == null) {
+            this.updatedAt = now;
+        }
+    }
 
     @PreUpdate
     public void preUpdate() {

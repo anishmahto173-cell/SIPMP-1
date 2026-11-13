@@ -36,7 +36,7 @@ public class Application {
     @Builder.Default
     private LocalDate appliedOn = LocalDate.now();
 
-    @Column(name = "status", nullable = false, length = 30)
+    @Column(name = "status", length = 30)
     @Builder.Default
     private String status = "Applied"; // Applied, Shortlisted, Interview Scheduled, Selected, Rejected, Withdrawn
 
@@ -47,7 +47,7 @@ public class Application {
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
     @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
 

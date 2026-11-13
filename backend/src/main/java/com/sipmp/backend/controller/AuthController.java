@@ -25,6 +25,7 @@ import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -122,8 +123,9 @@ public class AuthController {
         // Validate password
         boolean matches = passwordEncoder.matches(password, user.getPasswordHash()) || user.getPasswordHash().equals(password);
         if (!matches) {
-            user.setFailedAttempts(user.getFailedAttempts() + 1);
-            if (user.getFailedAttempts() >= 5) {
+            int nextFailedAttempts = (user.getFailedAttempts() != null ? user.getFailedAttempts() : 0) + 1;
+            user.setFailedAttempts(nextFailedAttempts);
+            if (nextFailedAttempts >= 5) {
                 user.setLockedUntil(LocalDateTime.now().plusMinutes(15));
                 userRepository.save(user);
                 return ResponseEntity.status(403).body(Map.of("success", false, "message", "Account locked due to 5 consecutive failed login attempts. Try again in 15 minutes."));
@@ -249,8 +251,8 @@ public class AuthController {
                     .userId(newUser.getUserId())
                     .enrollmentNo((String) request.getOrDefault("enrollmentNo", "DCSE-" + System.currentTimeMillis() % 10000))
                     .branch((String) request.getOrDefault("branch", "CSE"))
-                    .semester((Integer) request.getOrDefault("semester", 5))
-                    .cgpa(8.0)
+                    .semester(request.get("semester") instanceof Number n ? n.intValue() : 5)
+                    .cgpa(new BigDecimal("8.00"))
                     .backlogs(0)
                     .skills("Java, Spring Boot, MySQL")
                     .address(newUser.getAddress())

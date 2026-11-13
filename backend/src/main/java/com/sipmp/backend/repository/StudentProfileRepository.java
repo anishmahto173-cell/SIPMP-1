@@ -7,8 +7,8 @@ import java.util.Optional;
 import java.util.List;
 
 @Repository
-public interface StudentProfileRepository extends JpaRepository<StudentProfile, Long> {
-    Optional<StudentProfile> findByUserId(Long userId);
+public interface StudentProfileRepository extends JpaRepository<StudentProfile, Integer> {
+    Optional<StudentProfile> findByUserId(Integer userId);
     Optional<StudentProfile> findByEnrollmentNoIgnoreCase(String enrollmentNo);
     List<StudentProfile> findByBranch(String branch);
     List<StudentProfile> findByVerificationStatus(String status);

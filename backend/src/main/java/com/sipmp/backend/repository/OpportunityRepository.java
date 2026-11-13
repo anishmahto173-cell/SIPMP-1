@@ -6,8 +6,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface OpportunityRepository extends JpaRepository<Opportunity, Long> {
-    List<Opportunity> findByCompanyId(Long companyId);
+public interface OpportunityRepository extends JpaRepository<Opportunity, Integer> {
+    List<Opportunity> findByCompanyId(Integer companyId);
     List<Opportunity> findByStatus(String status);
-    List<Opportunity> findByJobType(String jobType);
+    List<Opportunity> findByType(String type);
 }

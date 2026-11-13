@@ -18,10 +18,10 @@ public class UserAccessHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "history_id")
-    private Long historyId;
+    private Integer historyId;
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private Integer userId;
 
     @Column(name = "action_type", nullable = false, length = 30)
     private String actionType; // APPROVE, REJECT, ACTIVATE, DEACTIVATE, ROLE_CHANGE
@@ -38,12 +38,33 @@ public class UserAccessHistory {
     @Column(name = "new_status", length = 20)
     private String newStatus;
 
-    @Column(name = "reason", columnDefinition = "TEXT")
+    @Column(name = "reason", length = 255)
     private String reason;
 
-    @Column(name = "action_by", nullable = false)
-    private Long actionBy;
+    @Column(name = "action_by")
+    private Integer actionBy;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at", updatable = false)
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        if (this.updatedAt == null) {
+            this.updatedAt = now;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }

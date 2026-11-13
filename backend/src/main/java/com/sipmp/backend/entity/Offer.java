@@ -2,6 +2,7 @@ package com.sipmp.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -21,32 +22,55 @@ public class Offer {
     @Column(name = "offer_id")
     private Integer offerId;
 
-    @Column(name = "application_id", nullable = false)
+    @Column(name = "application_id", nullable = false, unique = true)
     private Integer applicationId;
 
-    @Column(name = "ctc_lpa", nullable = false)
-    private Double ctcLpa;
+    @Column(name = "job_title", nullable = false, length = 150)
+    private String jobTitle;
 
-    @Column(name = "designation", nullable = false, length = 100)
-    private String designation;
-
-    @Column(name = "joining_location", length = 100)
-    private String joiningLocation;
+    @Column(name = "package_amount", nullable = false, precision = 10, scale = 2)
+    private BigDecimal packageAmount;
 
     @Column(name = "joining_date")
     private LocalDate joiningDate;
 
-    @Column(name = "valid_until", nullable = false)
-    private LocalDate validUntil;
+    @Column(name = "offer_validity_date", nullable = false)
+    private LocalDate offerValidityDate;
 
-    @Column(name = "status", nullable = false, length = 20)
-    private String status = "Pending"; // Pending, Accepted, Rejected, Expired
+    @Column(name = "status", length = 20)
+    @Builder.Default
+    private String status = "Pending"; // Pending, Accepted, Rejected, Expired, Revoked
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "remarks", length = 255)
+    private String remarks;
+
+    @Column(name = "released_by", nullable = false)
+    private Integer releasedBy;
+
+    @Column(name = "responded_at")
+    private LocalDateTime respondedAt;
+
+    @Column(name = "created_at", updatable = false)
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(name = "updated_at", nullable = false)
+    @Column(name = "updated_at")
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.status == null) {
+            this.status = "Pending";
+        }
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        if (this.updatedAt == null) {
+            this.updatedAt = now;
+        }
+    }
 
     @PreUpdate
     public void preUpdate() {

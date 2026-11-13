@@ -76,7 +76,7 @@
             "header": [{"key": "Content-Type", "value": "application/json"}],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyId\": 1,\n  \"title\": \"Cloud Support Engineer\",\n  \"jobType\": \"Full-time\",\n  \"description\": \"Linux administration, cloud deployments, and incident triage.\",\n  \"skillsRequired\": \"Linux, Networking, AWS, Shell Scripting\",\n  \"packageCtc\": 6.2,\n  \"location\": \"Pune\",\n  \"deadline\": \"2025-06-30\",\n  \"minCgpa\": 7.0,\n  \"eligibleBranches\": \"CSE,IT,ECE\",\n  \"eligibleSemesters\": \"5,6\",\n  \"maxBacklogs\": 0,\n  \"openingsCount\": 5\n}"
+              "raw": "{\n  \"companyId\": 1,\n  \"title\": \"Cloud Support Engineer\",\n  \"type\": \"Placement\",\n  \"description\": \"Linux administration, cloud deployments, and incident triage.\",\n  \"compensation\": 6.2,\n  \"location\": \"Pune\",\n  \"applicationDeadline\": \"2026-06-30\",\n  \"minCgpa\": 7.0,\n  \"eligibleBranches\": \"CSE,IT,ECE\",\n  \"minSemester\": 5,\n  \"maxBacklogs\": 0,\n  \"vacancies\": 5,\n  \"postedBy\": 1\n}"
             },
             "url": {"raw": "http://localhost:8080/api/opportunities/create", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "opportunities", "create"]}
           }

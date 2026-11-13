@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface UserAccessHistoryRepository extends JpaRepository<UserAccessHistory, Long> {
-    List<UserAccessHistory> findByUserIdOrderByCreatedAtDesc(Long userId);
+public interface UserAccessHistoryRepository extends JpaRepository<UserAccessHistory, Integer> {
+    List<UserAccessHistory> findByUserIdOrderByCreatedAtDesc(Integer userId);
 }

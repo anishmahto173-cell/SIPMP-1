@@ -2,6 +2,7 @@ package com.sipmp.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -18,23 +19,57 @@ public class ReportHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "report_id")
-    private Long reportId;
+    private Integer reportId;
 
-    @Column(name = "report_name", nullable = false, length = 150)
-    private String reportName;
-
-    @Column(name = "report_type", nullable = false, length = 50)
+    @Column(name = "report_type", nullable = false, length = 100)
     private String reportType;
 
-    @Column(name = "parameters", columnDefinition = "TEXT")
-    private String parameters;
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    @Column(name = "scope", length = 100)
+    private String scope;
+
+    @Column(name = "export_format", length = 20)
+    private String exportFormat;
 
     @Column(name = "generated_by", nullable = false)
-    private Long generatedBy;
+    private Integer generatedBy;
 
-    @Column(name = "file_url", length = 500)
-    private String fileUrl;
-
-    @Column(name = "generated_at", nullable = false, updatable = false)
+    @Column(name = "generated_at", updatable = false)
+    @Builder.Default
     private LocalDateTime generatedAt = LocalDateTime.now();
+
+    @Column(name = "schedule_frequency", length = 50)
+    private String scheduleFrequency;
+
+    @Column(name = "created_at", updatable = false)
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    @Builder.Default
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.generatedAt == null) {
+            this.generatedAt = now;
+        }
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        if (this.updatedAt == null) {
+            this.updatedAt = now;
+        }
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }
