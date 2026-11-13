@@ -2,6 +2,7 @@ package com.sipmp.backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -28,14 +29,44 @@ public class Application {
     @Column(name = "opportunity_id", nullable = false)
     private Integer opportunityId;
 
+    @Column(name = "resume_id")
+    private Integer resumeId;
+
+    @Column(name = "applied_on", nullable = false, updatable = false)
+    @Builder.Default
+    private LocalDate appliedOn = LocalDate.now();
+
     @Column(name = "status", nullable = false, length = 30)
+    @Builder.Default
     private String status = "Applied"; // Applied, Shortlisted, Interview Scheduled, Selected, Rejected, Withdrawn
 
-    @Column(name = "applied_at", nullable = false, updatable = false)
-    private LocalDateTime appliedAt = LocalDateTime.now();
+    @Column(name = "applied_by")
+    private Integer appliedBy;
+
+    @Column(name = "created_at", updatable = false)
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @Column(name = "updated_at", nullable = false)
+    @Builder.Default
     private LocalDateTime updatedAt = LocalDateTime.now();
+
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime now = LocalDateTime.now();
+        if (this.appliedOn == null) {
+            this.appliedOn = LocalDate.now();
+        }
+        if (this.createdAt == null) {
+            this.createdAt = now;
+        }
+        if (this.updatedAt == null) {
+            this.updatedAt = now;
+        }
+        if (this.status == null) {
+            this.status = "Applied";
+        }
+    }
 
     @PreUpdate
     public void preUpdate() {

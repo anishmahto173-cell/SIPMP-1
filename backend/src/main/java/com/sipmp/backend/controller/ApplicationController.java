@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +51,8 @@ public class ApplicationController {
                 .studentId(studentId)
                 .opportunityId(opportunityId)
                 .status("Applied")
-                .appliedAt(LocalDateTime.now())
+                .appliedOn(LocalDate.now())
+                .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
