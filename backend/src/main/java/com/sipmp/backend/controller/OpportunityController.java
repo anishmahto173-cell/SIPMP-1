@@ -14,7 +14,6 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/opportunities")
-@CrossOrigin(origins = "*")
 public class OpportunityController {
 
     @Autowired

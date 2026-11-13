@@ -24,7 +24,6 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/staff/recruiter-approvals")
 @PreAuthorize("hasAuthority('ROLE_PLACEMENT_OFFICER')")
-@CrossOrigin(origins = "*")
 public class RecruiterApprovalController {
 
     @Autowired
