@@ -28,20 +28,54 @@ import { InterviewOfferSchedulingPage } from './pages/recruiter/InterviewOfferSc
 import { PlacementDashboard } from './pages/staff/PlacementDashboard';
 import { StudentDirectoryPage } from './pages/staff/StudentDirectoryPage';
 import { ReportsPage } from './pages/staff/ReportsPage';
-import { UserAccessPage } from './pages/staff/UserAccessPage';
+import { RecruiterApprovalsPage } from './pages/staff/RecruiterApprovalsPage';
+import { Role } from './types';
 
-// Guard for protected routes
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { currentUser } = useAuth();
+// Guard for protected routes with optional role restriction
+const ProtectedRoute: React.FC<{ children: React.ReactNode; allowedRoles?: Role[] }> = ({
+  children,
+  allowedRoles,
+}) => {
+  const { currentUser, currentRole, isAuthLoading } = useAuth();
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-[#F3F4F6] flex items-center justify-center text-xs text-gray-600 font-medium">
+        Verifying session...
+      </div>
+    );
+  }
+
   if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
+
+  if (allowedRoles && (!currentRole || !allowedRoles.includes(currentRole))) {
+    return (
+      <MainLayout>
+        <div className="bg-white p-8 rounded-lg border border-rose-200 shadow-sm text-center max-w-lg mx-auto mt-8 space-y-2">
+          <h2 className="text-base font-bold text-[#111827]">403 — Forbidden</h2>
+          <p className="text-xs text-gray-600">
+            You do not have permission to access this workspace.
+          </p>
+        </div>
+      </MainLayout>
+    );
+  }
+
   return <MainLayout>{children}</MainLayout>;
 };
 
 // Root index redirector based on authenticated user
 const RootRedirect: React.FC = () => {
-  const { currentUser, isStudent, isRecruiter, isAdmin } = useAuth();
+  const { currentUser, isAuthLoading, isStudent, isRecruiter } = useAuth();
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-[#F3F4F6] flex items-center justify-center text-xs text-gray-600 font-medium">
+        Loading workspace...
+      </div>
+    );
+  }
   if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
@@ -50,9 +84,6 @@ const RootRedirect: React.FC = () => {
   }
   if (isRecruiter) {
     return <Navigate to="/recruiter/dashboard" replace />;
-  }
-  if (isAdmin) {
-    return <Navigate to="/admin/users" replace />;
   }
   return <Navigate to="/officer/dashboard" replace />;
 };
@@ -167,15 +198,23 @@ export default function App() {
           <Route
             path="/officer/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PLACEMENT_OFFICER', 'FACULTY_COORDINATOR']}>
                 <PlacementDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/officer/recruiter-approvals"
+            element={
+              <ProtectedRoute allowedRoles={['PLACEMENT_OFFICER']}>
+                <RecruiterApprovalsPage />
               </ProtectedRoute>
             }
           />
           <Route
             path="/officer/students"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PLACEMENT_OFFICER', 'FACULTY_COORDINATOR']}>
                 <StudentDirectoryPage />
               </ProtectedRoute>
             }
@@ -183,16 +222,8 @@ export default function App() {
           <Route
             path="/reports"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['PLACEMENT_OFFICER', 'FACULTY_COORDINATOR']}>
                 <ReportsPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <ProtectedRoute>
-                <UserAccessPage />
               </ProtectedRoute>
             }
           />

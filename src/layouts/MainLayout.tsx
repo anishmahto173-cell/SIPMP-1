@@ -13,12 +13,9 @@ import {
   FileSpreadsheet,
   LogOut,
   GraduationCap,
-  Sparkles,
-  ChevronRight,
-  Shield
+  UserCheck
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { Role } from '../types';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -33,16 +30,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     isStaff,
     isPlacementOfficer,
     isFacultyCoordinator,
-    isAdmin,
-    logout,
-    switchUserRoleForTesting
+    logout
   } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/login');
   };
 
@@ -224,8 +219,22 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   }
                 >
                   <LayoutDashboard className="w-4 h-4" />
-                  {isPlacementOfficer ? 'Placement Dashboard' : isFacultyCoordinator ? 'Department Dashboard' : 'Admin Overview'}
+                  {isPlacementOfficer ? 'Placement Dashboard' : 'Department Dashboard'}
                 </NavLink>
+
+                {isPlacementOfficer && (
+                  <NavLink
+                    to="/officer/recruiter-approvals"
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 px-3 py-2.5 rounded-md text-xs font-medium transition-all ${
+                        isActive ? 'bg-[#1D4ED8] text-white shadow-sm font-semibold' : 'text-slate-300 hover:bg-blue-900/40 hover:text-white'
+                      }`
+                    }
+                  >
+                    <UserCheck className="w-4 h-4" />
+                    Recruiter Approvals
+                  </NavLink>
+                )}
 
                 <NavLink
                   to="/officer/students"
@@ -262,105 +271,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <FileSpreadsheet className="w-4 h-4" />
                   Reports & Analytics
                 </NavLink>
-
-                {isAdmin && (
-                  <NavLink
-                    to="/admin/users"
-                    className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2.5 rounded-md text-xs font-medium transition-all ${
-                        isActive ? 'bg-[#1D4ED8] text-white shadow-sm font-semibold' : 'text-slate-300 hover:bg-blue-900/40 hover:text-white'
-                      }`
-                    }
-                  >
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    User Access & Roles
-                  </NavLink>
-                )}
               </>
             )}
           </nav>
         </div>
 
-        {/* Footer controls & Fast role-switcher for student inspection */}
+        {/* Footer controls */}
         <div className="p-3 border-t border-blue-900/60 bg-blue-950/60 space-y-2">
-          {/* Fast Role Simulator */}
-          <div className="bg-blue-900/40 p-2 rounded border border-blue-800/60">
-            <p className="text-[10px] text-blue-200 font-bold uppercase tracking-wider mb-1.5 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-300" /> Test Persona Switcher
-            </p>
-            <div className="grid grid-cols-3 gap-1">
-              <button
-                type="button"
-                onClick={() => {
-                  switchUserRoleForTesting('STUDENT');
-                  navigate('/student/dashboard');
-                }}
-                className={`text-[10px] py-1 px-1.5 rounded font-semibold text-center truncate ${
-                  isStudent ? 'bg-blue-600 text-white' : 'bg-blue-950 text-blue-200 hover:bg-blue-800'
-                }`}
-                title="Student: Priya Shah"
-              >
-                Student
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  switchUserRoleForTesting('COMPANY_RECRUITER');
-                  navigate('/recruiter/dashboard');
-                }}
-                className={`text-[10px] py-1 px-1.5 rounded font-semibold text-center truncate ${
-                  isRecruiter ? 'bg-blue-600 text-white' : 'bg-blue-950 text-blue-200 hover:bg-blue-800'
-                }`}
-                title="Recruiter: Karan Joshi (TechNova)"
-              >
-                Recruiter
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  switchUserRoleForTesting('PLACEMENT_OFFICER');
-                  navigate('/officer/dashboard');
-                }}
-                className={`text-[10px] py-1 px-1.5 rounded font-semibold text-center truncate ${
-                  isPlacementOfficer ? 'bg-blue-600 text-white' : 'bg-blue-950 text-blue-200 hover:bg-blue-800'
-                }`}
-                title="Staff: Neha Patel (Placement Officer)"
-              >
-                PO
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-1 mt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  switchUserRoleForTesting('FACULTY_COORDINATOR');
-                  navigate('/officer/dashboard');
-                }}
-                className={`text-[10px] py-1 px-1.5 rounded font-semibold text-center truncate ${
-                  isFacultyCoordinator ? 'bg-blue-600 text-white' : 'bg-blue-950 text-blue-200 hover:bg-blue-800'
-                }`}
-                title="Staff: Dr. Amit Verma (Faculty Coord CSE)"
-              >
-                Faculty
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  switchUserRoleForTesting('ADMINISTRATOR');
-                  navigate('/admin/users');
-                }}
-                className={`text-[10px] py-1 px-1.5 rounded font-semibold text-center truncate ${
-                  isAdmin ? 'bg-blue-600 text-white' : 'bg-blue-950 text-blue-200 hover:bg-blue-800'
-                }`}
-                title="Admin: Sana Khan"
-              >
-                Admin
-              </button>
-            </div>
-          </div>
-
           {/* Logout Action */}
           <button
+            type="button"
             onClick={handleLogout}
             className="w-full flex items-center justify-center gap-2 py-2 px-3 text-xs font-medium text-rose-200 hover:text-white bg-rose-950/40 hover:bg-rose-900/60 border border-rose-900/60 rounded-md transition-colors"
           >

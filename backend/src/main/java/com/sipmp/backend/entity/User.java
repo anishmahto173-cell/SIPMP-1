@@ -1,5 +1,6 @@
 package com.sipmp.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -29,11 +30,12 @@ public class User {
     @Column(name = "phone", nullable = false, unique = true, length = 15)
     private String phone;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
     @Column(name = "role", nullable = false, length = 30)
-    private String role; // STUDENT, COMPANY_RECRUITER, PLACEMENT_OFFICER, FACULTY_COORDINATOR, ADMINISTRATOR
+    private String role; // STUDENT, COMPANY_RECRUITER, PLACEMENT_OFFICER, FACULTY_COORDINATOR
 
     @Column(name = "status", nullable = false, length = 20)
     private String status; // Active, Pending, Deactivated, Rejected, Deleted
@@ -46,6 +48,18 @@ public class User {
 
     @Column(name = "address", columnDefinition = "TEXT")
     private String address;
+
+    @Column(name = "designation", length = 100)
+    private String designation;
+
+    @Column(name = "department", length = 100)
+    private String department;
+
+    @Column(name = "company_name", length = 150)
+    private String companyName;
+
+    @Column(name = "company_website", length = 150)
+    private String companyWebsite;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();

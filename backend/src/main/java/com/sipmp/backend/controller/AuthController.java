@@ -1,14 +1,28 @@
 package com.sipmp.backend.controller;
 
-import com.sipmp.backend.entity.User;
-import com.sipmp.backend.entity.StudentProfile;
 import com.sipmp.backend.entity.Company;
-import com.sipmp.backend.repository.UserRepository;
-import com.sipmp.backend.repository.StudentProfileRepository;
+import com.sipmp.backend.entity.StudentProfile;
+import com.sipmp.backend.entity.User;
 import com.sipmp.backend.repository.CompanyRepository;
+import com.sipmp.backend.repository.StudentProfileRepository;
+import com.sipmp.backend.repository.UserRepository;
+import com.sipmp.backend.util.RoleUtils;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.SecurityContextRepository;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -31,11 +45,27 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private SecurityContextRepository securityContextRepository;
+
+    @GetMapping("/csrf")
+    public ResponseEntity<Map<String, String>> csrf(CsrfToken csrfToken) {
+        return ResponseEntity.ok(Map.of(
+                "token", csrfToken.getToken(),
+                "headerName", csrfToken.getHeaderName()
+        ));
+    }
+
     /**
      * S01: Role-Segmented Login with 3 visible choices: STUDENT, RECRUITER, STAFF
+     * Establishes a standard Spring Security HttpSession (JSESSIONID).
      */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> login(
+            @RequestBody Map<String, String> request,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse
+    ) {
         String roleOption = request.get("roleOption"); // STUDENT, RECRUITER, STAFF
         String identifier = request.get("identifier"); // Email or Phone
         String password = request.get("password");
@@ -70,17 +100,22 @@ public class AuthController {
         if ("Rejected".equalsIgnoreCase(user.getStatus())) {
             return ResponseEntity.status(403).body(Map.of("success", false, "message", "Your registration was rejected. Account details could not be verified."));
         }
+        if ("Deleted".equalsIgnoreCase(user.getStatus())) {
+            return ResponseEntity.status(403).body(Map.of("success", false, "message", "Account not found or deleted."));
+        }
+
+        // Derive canonical role strictly from the database record
+        String normalizedRole = RoleUtils.normalizeRole(user.getRole());
 
         // Role verification matching the 3 visible options
-        if ("STUDENT".equalsIgnoreCase(roleOption) && !"STUDENT".equalsIgnoreCase(user.getRole())) {
+        if ("STUDENT".equalsIgnoreCase(roleOption) && !RoleUtils.STUDENT.equals(normalizedRole)) {
             return ResponseEntity.status(400).body(Map.of("success", false, "message", "Role mismatch: You selected Student, but this account is registered as " + user.getRole() + "."));
         }
-        if ("RECRUITER".equalsIgnoreCase(roleOption) && !"COMPANY_RECRUITER".equalsIgnoreCase(user.getRole())) {
+        if ("RECRUITER".equalsIgnoreCase(roleOption) && !RoleUtils.COMPANY_RECRUITER.equals(normalizedRole)) {
             return ResponseEntity.status(400).body(Map.of("success", false, "message", "Role mismatch: You selected Recruiter, but this account is registered as " + user.getRole() + "."));
         }
         if ("STAFF".equalsIgnoreCase(roleOption)) {
-            List<String> staffRoles = Arrays.asList("PLACEMENT_OFFICER", "FACULTY_COORDINATOR", "ADMINISTRATOR");
-            if (!staffRoles.contains(user.getRole().toUpperCase())) {
+            if (!RoleUtils.isStaffDesignation(user.getRole())) {
                 return ResponseEntity.status(400).body(Map.of("success", false, "message", "Role mismatch: You selected Staff, but this account is registered as " + user.getRole() + "."));
             }
         }
@@ -103,12 +138,71 @@ public class AuthController {
         user.setLockedUntil(null);
         userRepository.save(user);
 
+        // Establish Spring Security HttpSession context using the database-derived authority
+        httpRequest.getSession(true);
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + normalizedRole));
+        UsernamePasswordAuthenticationToken authentication = UsernamePasswordAuthenticationToken.authenticated(
+                user.getEmail(),
+                null,
+                authorities
+        );
+        SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+        securityContext.setAuthentication(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        securityContextRepository.saveContext(securityContext, httpRequest, httpResponse);
+
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "Login successful.");
-        response.put("user", user);
+        response.put("user", toUserPayload(user, normalizedRole));
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Returns the currently authenticated user from the active Spring Security HttpSession.
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> currentSession(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated() || authentication instanceof AnonymousAuthenticationToken) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Not authenticated."));
+        }
+
+        Optional<User> userOpt = userRepository.findByEmailIgnoreCase(authentication.getName());
+        if (userOpt.isEmpty() || !"Active".equalsIgnoreCase(userOpt.get().getStatus())) {
+            SecurityContextHolder.clearContext();
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", "Session is no longer valid."));
+        }
+
+        User user = userOpt.get();
+        String normalizedRole = RoleUtils.normalizeRole(user.getRole());
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "user", toUserPayload(user, normalizedRole)
+        ));
+    }
+
+    /**
+     * Invalidates the HttpSession, clears SecurityContextHolder, and expires JSESSIONID.
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
+        HttpSession session = httpRequest.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        SecurityContextHolder.clearContext();
+
+        Cookie cookie = new Cookie("JSESSIONID", "");
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(0);
+        httpResponse.addCookie(cookie);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Logged out successfully."
+        ));
     }
 
     /**
@@ -140,6 +234,10 @@ public class AuthController {
                 .status(initialStatus)
                 .failedAttempts(0)
                 .address((String) request.get("address"))
+                .designation((String) request.get("designation"))
+                .department((String) request.get("department"))
+                .companyName((String) request.get("companyName"))
+                .companyWebsite((String) request.get("companyWebsite"))
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -186,7 +284,27 @@ public class AuthController {
                 "message", initialStatus.equals("Active")
                         ? "Account registered successfully! You can now log in."
                         : "Registration submitted successfully! Your account is pending T&P approval.",
-                "user", newUser
+                "user", toUserPayload(newUser, RoleUtils.normalizeRole(newUser.getRole()))
         ));
+    }
+
+    private Map<String, Object> toUserPayload(User user, String normalizedRole) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("userId", user.getUserId());
+        payload.put("fullName", user.getFullName());
+        payload.put("email", user.getEmail());
+        payload.put("phone", user.getPhone());
+        payload.put("role", normalizedRole);
+        payload.put("status", user.getStatus());
+        payload.put("failedAttempts", user.getFailedAttempts());
+        payload.put("lockedUntil", user.getLockedUntil());
+        payload.put("address", user.getAddress());
+        payload.put("designation", user.getDesignation());
+        payload.put("department", user.getDepartment());
+        payload.put("companyName", user.getCompanyName());
+        payload.put("companyWebsite", user.getCompanyWebsite());
+        payload.put("createdAt", user.getCreatedAt());
+        payload.put("updatedAt", user.getUpdatedAt());
+        return payload;
     }
 }

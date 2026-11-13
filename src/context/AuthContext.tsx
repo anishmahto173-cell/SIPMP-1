@@ -1,66 +1,91 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Role, LoginRoleOption } from '../types';
 import { portalState } from '../services/portalState';
+import { authApi } from '../services/apiClient';
 
 interface AuthContextType {
   currentUser: User | null;
   currentRole: Role | null;
+  isAuthLoading: boolean;
   isStudent: boolean;
   isRecruiter: boolean;
   isStaff: boolean;
   isPlacementOfficer: boolean;
   isFacultyCoordinator: boolean;
   isAdmin: boolean;
-  login: (roleOption: LoginRoleOption, identifier: string, passwordPlain: string) => { success: boolean; message?: string };
-  logout: () => void;
+  login: (
+    roleOption: LoginRoleOption,
+    identifier: string,
+    passwordPlain: string
+  ) => Promise<{ success: boolean; message?: string; user?: User }>;
+  logout: () => Promise<void>;
   switchUserRoleForTesting: (role: Role) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(portalState.getCurrentUser());
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Keep local component state in sync with portalState
-    const checkUser = () => {
-      setCurrentUser(portalState.getCurrentUser());
+    let active = true;
+    const restoreSession = async () => {
+      try {
+        const sessionUser = await authApi.me();
+        if (!active) return;
+        setCurrentUser(sessionUser);
+        portalState.setCurrentUser(sessionUser);
+      } finally {
+        if (active) {
+          setIsAuthLoading(false);
+        }
+      }
     };
-    window.addEventListener('storage', checkUser);
-    return () => window.removeEventListener('storage', checkUser);
+    restoreSession();
+    return () => {
+      active = false;
+    };
   }, []);
 
-  const login = (roleOption: LoginRoleOption, identifier: string, passwordPlain: string) => {
-    const res = portalState.login(roleOption, identifier, passwordPlain);
+  const login = async (
+    roleOption: LoginRoleOption,
+    identifier: string,
+    passwordPlain: string
+  ): Promise<{ success: boolean; message?: string; user?: User }> => {
+    const res = await authApi.login(roleOption, identifier, passwordPlain);
     if (res.success && res.user) {
       setCurrentUser(res.user);
+      portalState.setCurrentUser(res.user);
+      return { success: true, message: res.message, user: res.user };
     }
-    return { success: res.success, message: res.message };
+    return { success: false, message: res.message };
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await authApi.logout();
     portalState.logout();
     setCurrentUser(null);
   };
 
-  const switchUserRoleForTesting = (role: Role) => {
-    portalState.switchTestUser(role);
-    setCurrentUser(portalState.getCurrentUser());
+  const switchUserRoleForTesting = (_role: Role) => {
+    // Authentication is enforced via backend HttpSession; client-side role switching is disabled.
   };
 
   const currentRole = currentUser?.role || null;
   const isStudent = currentRole === 'STUDENT';
   const isRecruiter = currentRole === 'COMPANY_RECRUITER';
-  const isStaff = ['PLACEMENT_OFFICER', 'FACULTY_COORDINATOR', 'ADMINISTRATOR'].includes(currentRole || '');
   const isPlacementOfficer = currentRole === 'PLACEMENT_OFFICER';
   const isFacultyCoordinator = currentRole === 'FACULTY_COORDINATOR';
-  const isAdmin = currentRole === 'ADMINISTRATOR';
+  const isStaff = isPlacementOfficer || isFacultyCoordinator;
+  const isAdmin = false;
 
   return (
     <AuthContext.Provider
       value={{
         currentUser,
         currentRole,
+        isAuthLoading,
         isStudent,
         isRecruiter,
         isStaff,
@@ -69,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin,
         login,
         logout,
-        switchUserRoleForTesting
+        switchUserRoleForTesting,
       }}
     >
       {children}

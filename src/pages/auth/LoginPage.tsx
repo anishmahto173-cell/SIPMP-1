@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { LoginRoleOption } from '../../types';
-import { portalState } from '../../services/portalState';
 import { GraduationCap, Briefcase, ShieldCheck, AlertCircle, ArrowRight, UserCheck } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
@@ -11,7 +10,7 @@ export const LoginPage: React.FC = () => {
 
   const [selectedRole, setSelectedRole] = useState<LoginRoleOption>('STUDENT');
   const [identifier, setIdentifier] = useState('priya.shah@college.edu');
-  const [password, setPassword] = useState('Password@123');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -23,27 +22,20 @@ export const LoginPage: React.FC = () => {
     setError(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
-      const res = login(selectedRole, identifier, password);
-      if (res.success) {
-        const user = portalState.getCurrentUser();
-        if (user) {
-          if (user.role === 'STUDENT') {
-            navigate('/student/dashboard');
-          } else if (user.role === 'COMPANY_RECRUITER') {
-            navigate('/recruiter/dashboard');
-          } else if (user.role === 'ADMINISTRATOR') {
-            navigate('/admin/users');
-          } else {
-            navigate('/officer/dashboard');
-          }
+      const res = await login(selectedRole, identifier, password);
+      if (res.success && res.user) {
+        if (res.user.role === 'STUDENT') {
+          navigate('/student/dashboard');
+        } else if (res.user.role === 'COMPANY_RECRUITER') {
+          navigate('/recruiter/dashboard');
         } else {
-          navigate('/');
+          navigate('/officer/dashboard');
         }
       } else {
         setError(res.message || 'Login failed. Please verify your credentials.');
@@ -133,7 +125,7 @@ export const LoginPage: React.FC = () => {
             <p className="text-[11px] text-gray-500 mt-2">
               {selectedRole === 'STUDENT' && 'For registered diploma candidates accessing job postings, drives, and tracking offers.'}
               {selectedRole === 'RECRUITER' && 'For verified industry partners posting job openings and shortlisting applicants.'}
-              {selectedRole === 'STAFF' && 'For Placement Officers, Faculty Coordinators, and System Administrators.'}
+              {selectedRole === 'STAFF' && 'For Placement Officers and Faculty Coordinators.'}
             </p>
           </div>
 
@@ -237,14 +229,6 @@ export const LoginPage: React.FC = () => {
                 className="w-full text-left px-2.5 py-1.5 rounded border border-gray-200 bg-gray-50 hover:bg-purple-50 text-[11px] text-gray-700 flex items-center justify-between transition-colors"
               >
                 <span><strong>Faculty Coord:</strong> Dr. Amit Verma (CSE Dept)</span>
-                <span className="text-[10px] text-purple-600 font-mono">Fill</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreset('STAFF', 'sana.khan@college.edu', 'Password@123')}
-                className="w-full text-left px-2.5 py-1.5 rounded border border-gray-200 bg-gray-50 hover:bg-purple-50 text-[11px] text-gray-700 flex items-center justify-between transition-colors"
-              >
-                <span><strong>Admin:</strong> Sana Khan (System Administrator)</span>
                 <span className="text-[10px] text-purple-600 font-mono">Fill</span>
               </button>
             </div>
